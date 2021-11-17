@@ -1,0 +1,32 @@
+import pandas as pd
+import numpy as np
+raw_data = np.loadtxt('biomass.txt')
+X = raw_data[:, :-1]
+y = raw_data[:, -1]
+from sklearn.svm import SVR
+from sklearn.metrics import r2_score, mean_squared_error
+from sklearn.model_selection import cross_val_score
+svr_linear = SVR(kernel='linear')
+svr_poly = SVR(kernel='poly')
+svr_rbf = SVR(kernel='rbf')
+svr_sigmoid = SVR(kernel='sigmoid')
+svr_dic = [svr_linear, svr_poly, svr_rbf, svr_sigmoid]
+cv_score_list = []
+pre_y_list = []
+for svr in svr_dic:
+  scores = cross_val_score(svr, X, y, cv=6)
+  cv_score_list.append(scores)
+  pre_y_list.append(svr.fit(X, y).predict(X))
+svr_metrics_name = [mean_squared_error, r2_score]
+svr_metrics_list = []
+for i in range(4):
+  tmp_list = []
+  for m in svr_metrics_name:
+   tmp_score = m(y, pre_y_list[i])
+   tmp_list.append(tmp_score)
+  svr_metrics_list.append(tmp_list)
+svr_names = ['linear','poly','rbf','sigmoid'
+df1 = pd.DataFrame(cv_score_list, index=svr_names)
+df2 = pd.DataFrame(svr_metrics_list, index=svr_names, columns=['mse', 'r2'])
+print (df1)
+print (df2)
